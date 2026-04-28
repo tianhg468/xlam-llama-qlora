@@ -1,0 +1,85 @@
+# xLAM Llama 3.1 qLoRA Fine-tuning Configuration
+
+# Model
+base_model: "meta-llama/Llama-3.1-8B-Instruct"
+attn_implementation: "flash_attention_2"  # fallback to "eager" if FA2 not available
+
+# Dataset
+dataset_name: "Salesforce/xlam-function-calling-60k"
+train_split: 0.90
+val_split: 0.05
+test_split: 0.05
+seed: 42
+
+# LoRA Configuration
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# Quantization (4-bit NF4)
+quantization:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+
+# Training Hyperparameters
+training:
+  num_train_epochs: 3
+  max_steps: -1  # set to e.g. 200 for quick smoke test; -1 = use num_train_epochs
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4  # effective batch size = 4 * 4 = 16
+  gradient_checkpointing: true
+  max_seq_length: 2048
+
+  # Optimizer
+  optim: "paged_adamw_8bit"
+  learning_rate: 2.0e-4
+  weight_decay: 0.0
+  max_grad_norm: 0.3
+
+  # Scheduler
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+
+  # Precision
+  bf16: true
+  fp16: false
+
+  # Logging & Saving
+  logging_steps: 10
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_strategy: "steps"
+  save_steps: 200
+  save_total_limit: 2
+
+  # Misc
+  report_to: "wandb"  # Weights & Biases tracking enabled
+  seed: 42
+  output_dir: "outputs/llama31-8b-xlam-lora"
+
+# Evaluation
+evaluation:
+  num_test_samples: 500  # number of test examples to evaluate
+  max_new_tokens: 512
+  temperature: 0.0  # greedy decoding
+  do_sample: false
+
+# Inference
+inference:
+  max_new_tokens: 512
+  temperature: 0.0
+  do_sample: false
