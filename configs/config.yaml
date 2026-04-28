@@ -83,3 +83,23 @@ inference:
   max_new_tokens: 512
   temperature: 0.0
   do_sample: false
+
+# LM Evaluation Harness (EleutherAI)
+lm_harness:
+  tasks:
+    - "mmlu"  # Full MMLU benchmark (or use subsets like "mmlu_abstract_algebra")
+  num_fewshot: 5  # Number of few-shot examples
+  batch_size: 1  # Batch size for evaluation
+  device: "cuda"  # Device to use (cuda, cpu)
+
+# Frontier Model Comparison
+# Set API keys as environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY
+frontier_models:
+  num_test_samples: 100  # Number of test examples (API costs can add up)
+  enabled:
+    - "gpt-4o"  # OpenAI GPT-4o (latest)
+    - "gpt-4-turbo"  # OpenAI GPT-4 Turbo
+    # - "gpt-3.5-turbo"  # OpenAI GPT-3.5 (uncomment to enable)
+    - "claude-3-5-sonnet"  # Anthropic Claude 3.5 Sonnet
+    # - "claude-3-opus"  # Anthropic Claude 3 Opus (uncomment to enable)
+    # - "gemini-1.5-pro"  # Google Gemini 1.5 Pro (uncomment to enable)

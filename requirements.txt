@@ -9,3 +9,11 @@ pyyaml
 sentencepiece
 scikit-learn
 wandb
+lm-eval>=0.4.0
+tqdm
+matplotlib
+
+# Frontier model API clients (optional - only needed for frontier comparison)
+openai>=1.0.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
