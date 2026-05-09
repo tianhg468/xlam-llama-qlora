@@ -104,7 +104,20 @@ def main():
     print(f"Loading dataset: {config['dataset_name']}")
     # Get HuggingFace token for gated datasets
     token = get_token()
-    dataset = load_dataset(config["dataset_name"], split="train", token=token)
+
+    if token is None:
+        print("⚠️  Warning: No HuggingFace token found!")
+        print("Please login first: from huggingface_hub import login; login()")
+        raise RuntimeError(
+            "HuggingFace authentication required for gated dataset. "
+            "Run: from huggingface_hub import login; login()"
+        )
+
+    print(f"✅ Token found: {token[:10]}...")
+
+    # Load dataset - authentication should be automatic from login()
+    # But we'll explicitly pass token=True to use the logged-in credentials
+    dataset = load_dataset(config["dataset_name"], split="train", token=True)
 
     print(f"Total examples: {len(dataset)}")
 
