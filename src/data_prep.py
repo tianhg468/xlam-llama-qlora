@@ -78,9 +78,21 @@ def main():
     """Download xLAM dataset, format, split, and save as JSONL."""
     config = load_config()
 
-    # Create data directory
-    data_dir = Path(__file__).parent.parent / "data"
-    data_dir.mkdir(exist_ok=True)
+    # Create data directory - save to Google Drive to persist across restarts
+    # Try Drive first, fallback to local if Drive not available
+    drive_data_dir = Path("/content/drive/MyDrive/xlam-llama-qlora/data")
+    local_data_dir = Path(__file__).parent.parent / "data"
+
+    if drive_data_dir.parent.exists():
+        data_dir = drive_data_dir
+        print(f"✅ Using Google Drive for data: {data_dir}")
+        print("   Data will persist across Colab restarts!")
+    else:
+        data_dir = local_data_dir
+        print(f"⚠️  Using local storage for data: {data_dir}")
+        print("   WARNING: Data will be lost if Colab restarts!")
+
+    data_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading dataset: {config['dataset_name']}")
     # Get HuggingFace token for gated datasets

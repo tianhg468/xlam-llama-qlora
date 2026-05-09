@@ -85,9 +85,31 @@ def main():
 
     # Paths
     project_root = Path(__file__).parent.parent
-    data_dir = project_root / "data"
-    output_dir = project_root / config["training"]["output_dir"]
+
+    # Try to load data from Google Drive first, fallback to local
+    drive_data_dir = Path("/content/drive/MyDrive/xlam-llama-qlora/data")
+    local_data_dir = project_root / "data"
+
+    if (drive_data_dir / "train.jsonl").exists():
+        data_dir = drive_data_dir
+        print(f"✅ Loading data from Google Drive: {data_dir}")
+    elif (local_data_dir / "train.jsonl").exists():
+        data_dir = local_data_dir
+        print(f"⚠️  Loading data from local: {data_dir}")
+    else:
+        raise FileNotFoundError(
+            f"Data not found in Drive ({drive_data_dir}) or local ({local_data_dir}). "
+            f"Please run data preparation first: python -m src.data_prep_optimized"
+        )
+
+    # Output directory - use absolute path if provided, otherwise relative to project
+    output_dir_config = config["training"]["output_dir"]
+    if Path(output_dir_config).is_absolute():
+        output_dir = Path(output_dir_config)
+    else:
+        output_dir = project_root / output_dir_config
     output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"✅ Checkpoints will be saved to: {output_dir}")
 
     print("="*80)
     print("qLoRA TRAINING - Llama 3.1 on xLAM Function Calling")
