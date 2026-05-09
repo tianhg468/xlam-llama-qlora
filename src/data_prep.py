@@ -10,7 +10,14 @@ from typing import Dict, List
 
 import yaml
 from datasets import load_dataset
-from huggingface_hub import HfFolder
+
+# Import token retrieval function (compatible with newer huggingface_hub)
+try:
+    from huggingface_hub import get_token
+except ImportError:
+    # Fallback for older versions
+    from huggingface_hub import HfFolder
+    get_token = HfFolder.get_token
 
 
 # Exact Llama 3.1 response template for completion-only loss
@@ -96,7 +103,7 @@ def main():
 
     print(f"Loading dataset: {config['dataset_name']}")
     # Get HuggingFace token for gated datasets
-    token = HfFolder.get_token()
+    token = get_token()
     dataset = load_dataset(config["dataset_name"], split="train", token=token)
 
     print(f"Total examples: {len(dataset)}")
