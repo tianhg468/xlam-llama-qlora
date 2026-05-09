@@ -10,6 +10,7 @@ from typing import Dict, List
 
 import yaml
 from datasets import load_dataset
+from huggingface_hub import HfFolder
 
 
 # Exact Llama 3.1 response template for completion-only loss
@@ -82,7 +83,9 @@ def main():
     data_dir.mkdir(exist_ok=True)
 
     print(f"Loading dataset: {config['dataset_name']}")
-    dataset = load_dataset(config["dataset_name"], split="train")
+    # Get HuggingFace token for gated datasets
+    token = HfFolder.get_token()
+    dataset = load_dataset(config["dataset_name"], split="train", token=token)
 
     print(f"Total examples: {len(dataset)}")
 

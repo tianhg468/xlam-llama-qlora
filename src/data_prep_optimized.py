@@ -9,6 +9,7 @@ from typing import Dict, List
 
 import yaml
 from datasets import load_dataset
+from huggingface_hub import HfFolder
 from tqdm import tqdm
 
 # Import from data_prep to reuse format_example
@@ -43,7 +44,9 @@ def main():
         print(f"Loaded {len(formatted_examples)} examples from cache")
     else:
         print(f"Loading dataset: {config['dataset_name']}")
-        dataset = load_dataset(config["dataset_name"], split="train")
+        # Get HuggingFace token for gated datasets
+        token = HfFolder.get_token()
+        dataset = load_dataset(config["dataset_name"], split="train", token=token)
         print(f"Total examples: {len(dataset)}")
 
         # Validate and format examples
