@@ -1,10 +1,11 @@
-torch>=2.4,<2.7
+torch>=2.4,<2.11
 transformers>=4.45,<4.50
 trl>=0.11,<0.13
 peft>=0.13,<0.15
-bitsandbytes>=0.44,<0.46
+bitsandbytes>=0.49,<0.51
 accelerate>=1.0,<1.3
 datasets>=3.0,<3.5
+fsspec>=2025.3.0
 pyyaml
 sentencepiece
 scikit-learn
