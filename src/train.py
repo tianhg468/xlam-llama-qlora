@@ -254,7 +254,18 @@ def main():
     print("STARTING TRAINING")
     print("="*80 + "\n")
 
-    trainer.train()
+    # Check for existing checkpoints and resume from latest
+    import glob
+    checkpoints = sorted(glob.glob(str(output_dir / "checkpoint-*")))
+
+    if checkpoints:
+        latest_checkpoint = checkpoints[-1]
+        print(f"✅ Found checkpoint: {latest_checkpoint}")
+        print(f"   Resuming training from this checkpoint...")
+        trainer.train(resume_from_checkpoint=latest_checkpoint)
+    else:
+        print("No checkpoints found - starting training from scratch")
+        trainer.train()
 
     # Save final adapter
     print("\n" + "="*80)
