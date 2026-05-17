@@ -303,8 +303,32 @@ def main():
     """Run evaluation on both base and LoRA models."""
     config = load_config()
     project_root = Path(__file__).parent.parent
-    data_dir = project_root / "data"
-    adapter_path = project_root / config["training"]["output_dir"]
+
+    # Try to load data from Google Drive first, fallback to local
+    drive_data_dir = Path("/content/drive/MyDrive/xlam-llama-qlora/data")
+    local_data_dir = project_root / "data"
+
+    if (drive_data_dir / "test.jsonl").exists():
+        data_dir = drive_data_dir
+        print(f"✅ Loading data from Google Drive: {data_dir}")
+    elif (local_data_dir / "test.jsonl").exists():
+        data_dir = local_data_dir
+        print(f"⚠️  Loading data from local: {data_dir}")
+    else:
+        raise FileNotFoundError(
+            f"Test data not found in Drive ({drive_data_dir}) or local ({local_data_dir}). "
+            f"Please run data preparation first: python -m src.data_prep_optimized"
+        )
+
+    # Adapter path - use absolute path if provided, otherwise relative to project
+    adapter_path_config = config["training"]["output_dir"]
+    if Path(adapter_path_config).is_absolute():
+        adapter_path = Path(adapter_path_config)
+    else:
+        adapter_path = project_root / adapter_path_config
+
+    print(f"✅ Loading adapter from: {adapter_path}")
+
     output_dir = project_root / "outputs"
     output_dir.mkdir(exist_ok=True)
 
