@@ -88,23 +88,16 @@ def generate_response(model, tokenizer, prompt: str, config: Dict) -> str:
 
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
-    # Llama 3.1 special tokens - need to stop at both <|eot_id|> and <|end_of_text|>
-    # Get the token IDs for stop tokens
-    eot_token_id = tokenizer.convert_tokens_to_ids("<|eot_id|>")
-    eos_token_id = tokenizer.eos_token_id
-
-    # Create list of stop token IDs (handle both single int and list)
-    stop_token_ids = [eot_token_id, eos_token_id] if eot_token_id != tokenizer.unk_token_id else [eos_token_id]
-
+    # For Llama 3.1, <|eot_id|> is already the EOS token (ID: 128009)
+    # Use it directly - no need for a list
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
             max_new_tokens=eval_cfg["max_new_tokens"],
-            temperature=eval_cfg["temperature"] if eval_cfg["temperature"] > 0 else None,
-            do_sample=eval_cfg["do_sample"],
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=stop_token_ids,  # Stop at either <|eot_id|> or <|end_of_text|>
-            repetition_penalty=eval_cfg.get("repetition_penalty", 1.1),  # Penalize repetition to prevent loops
+            do_sample=False,  # Force greedy decoding for evaluation consistency
+            pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id else tokenizer.eos_token_id,
+            eos_token_id=tokenizer.eos_token_id,  # Single EOS token (128009)
+            repetition_penalty=eval_cfg.get("repetition_penalty", 1.15),  # Moderate penalty to prevent loops
         )
 
     # Decode only the generated tokens (skip input prompt)
