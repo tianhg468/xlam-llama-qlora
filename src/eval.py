@@ -246,9 +246,9 @@ def compute_metrics(predictions: List[Dict], ground_truths: List[Dict]) -> Dict:
     }
 
 
-def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_name: str) -> Tuple[Dict, List[Dict]]:
+def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_name: str, checkpoint_dir: Path = None) -> Tuple[Dict, List[Dict]]:
     """
-    Evaluate a single model on test data.
+    Evaluate a single model on test data with incremental checkpointing.
 
     Returns:
         (metrics_dict, predictions_list)
@@ -258,7 +258,25 @@ def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_
     predictions = []
     ground_truths = []
 
+    # Try to load checkpoint if it exists
+    checkpoint_file = None
+    start_idx = 0
+    if checkpoint_dir:
+        checkpoint_file = checkpoint_dir / f"{model_name.replace(' ', '_')}_checkpoint.json"
+        if checkpoint_file.exists():
+            print(f"  Found checkpoint: {checkpoint_file}")
+            with open(checkpoint_file, "r") as f:
+                checkpoint_data = json.load(f)
+                predictions = checkpoint_data["predictions"]
+                ground_truths = checkpoint_data["ground_truths"]
+                start_idx = len(predictions)
+                print(f"  Resuming from example {start_idx}/{len(test_data)}")
+
     for idx, example in enumerate(test_data):
+        # Skip already processed examples
+        if idx < start_idx:
+            continue
+
         if (idx + 1) % 50 == 0:
             print(f"  Processed {idx + 1}/{len(test_data)} examples")
 
@@ -287,6 +305,20 @@ def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_
             "calls": pred_calls,
             "raw_response": response,
         })
+
+        # Save checkpoint every 50 examples
+        if checkpoint_file and (idx + 1) % 50 == 0:
+            with open(checkpoint_file, "w") as f:
+                json.dump({
+                    "predictions": predictions,
+                    "ground_truths": ground_truths,
+                    "progress": idx + 1,
+                    "total": len(test_data)
+                }, f)
+
+    # Remove checkpoint file when complete
+    if checkpoint_file and checkpoint_file.exists():
+        checkpoint_file.unlink()
 
     # Compute metrics
     metrics = compute_metrics(predictions, ground_truths)
@@ -332,9 +364,23 @@ def main():
     output_dir = project_root / "outputs"
     output_dir.mkdir(exist_ok=True)
 
+    # Setup checkpoint directory (prefer Drive for persistence)
+    drive_checkpoint_dir = Path("/content/drive/MyDrive/xlam-llama-qlora/outputs/eval_checkpoints")
+    local_checkpoint_dir = output_dir / "eval_checkpoints"
+
+    if drive_checkpoint_dir.parent.parent.exists():
+        checkpoint_dir = drive_checkpoint_dir
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✅ Checkpoints will be saved to Google Drive: {checkpoint_dir}")
+    else:
+        checkpoint_dir = local_checkpoint_dir
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        print(f"⚠️  Checkpoints will be saved locally: {checkpoint_dir}")
+
     print("="*80)
     print("EVALUATION - Base vs LoRA on xLAM Test Set")
     print("="*80)
+    print("💾 Progress auto-saved every 50 examples")
 
     # Load test data
     num_samples = config["evaluation"]["num_test_samples"]
@@ -351,7 +397,8 @@ def main():
         tokenizer,
         test_data,
         config,
-        "Base Model"
+        "Base Model",
+        checkpoint_dir=checkpoint_dir
     )
 
     # Evaluate LoRA model
@@ -360,7 +407,8 @@ def main():
         tokenizer,
         test_data,
         config,
-        "LoRA Model"
+        "LoRA Model",
+        checkpoint_dir=checkpoint_dir
     )
 
     # Save results
