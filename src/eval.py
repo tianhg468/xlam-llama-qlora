@@ -89,20 +89,35 @@ def generate_response(model, tokenizer, prompt: str, config: Dict) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     # For Llama 3.1, <|eot_id|> is already the EOS token (ID: 128009)
-    # Use it directly - no need for a list
+    # Explicitly override ALL generation config to prevent model defaults from interfering
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
             max_new_tokens=eval_cfg["max_new_tokens"],
-            do_sample=False,  # Force greedy decoding for evaluation consistency
+            min_new_tokens=1,
+            do_sample=False,  # Force greedy decoding
+            num_beams=1,  # No beam search
+            temperature=None,  # Explicitly disable
+            top_p=None,  # Explicitly disable
+            top_k=None,  # Explicitly disable
             pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id else tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,  # Single EOS token (128009)
-            repetition_penalty=eval_cfg.get("repetition_penalty", 1.15),  # Moderate penalty to prevent loops
+            repetition_penalty=1.2,  # Penalty to discourage repetition
+            no_repeat_ngram_size=3,  # Never repeat same 3-token sequence
         )
 
     # Decode only the generated tokens (skip input prompt)
     generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
     response = tokenizer.decode(generated_ids, skip_special_tokens=True)
+
+    # Fallback: If response contains repetitive closing brackets, truncate at first valid JSON
+    # This handles cases where EOS token doesn't stop generation properly
+    if response.count("}}]") > 2:  # More than 2 occurrences suggests repetition
+        # Find the first complete JSON array
+        import re
+        match = re.search(r'\[.*?\]\s*(?=\}|$)', response)
+        if match:
+            response = match.group(0)
 
     return response
 
