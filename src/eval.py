@@ -380,14 +380,28 @@ def main():
         }
     }
 
+    # Save results to local outputs directory
     results_path = output_dir / "eval_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
 
-    print(f"\n{'='*80}")
-    print("EVALUATION COMPLETE")
-    print(f"{'='*80}")
-    print(f"Results saved to: {results_path}")
+    # Also save to Google Drive if available (to persist across Colab restarts)
+    drive_output_dir = Path("/content/drive/MyDrive/xlam-llama-qlora/outputs")
+    if drive_output_dir.parent.exists():
+        drive_output_dir.mkdir(parents=True, exist_ok=True)
+        drive_results_path = drive_output_dir / "eval_results.json"
+        with open(drive_results_path, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"\n{'='*80}")
+        print("EVALUATION COMPLETE")
+        print(f"{'='*80}")
+        print(f"✅ Results saved to Google Drive: {drive_results_path}")
+        print(f"   (Also saved locally: {results_path})")
+    else:
+        print(f"\n{'='*80}")
+        print("EVALUATION COMPLETE")
+        print(f"{'='*80}")
+        print(f"Results saved to: {results_path}")
 
     # Print comparison
     print("\nCOMPARISON:")
