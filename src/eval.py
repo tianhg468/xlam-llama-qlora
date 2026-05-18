@@ -204,6 +204,17 @@ def compute_metrics(predictions: List[Dict], ground_truths: List[Dict]) -> Dict:
         pred_calls = pred["calls"]
         gt_calls = gt["calls"]
 
+        # Defensive: ensure calls are lists of dicts
+        if not isinstance(pred_calls, list) or not isinstance(gt_calls, list):
+            continue
+
+        # Filter out non-dict items (defensive programming)
+        pred_calls = [call for call in pred_calls if isinstance(call, dict)]
+        gt_calls = [call for call in gt_calls if isinstance(call, dict)]
+
+        if not pred_calls or not gt_calls:
+            continue
+
         # Tool name accuracy (set comparison, order-invariant)
         pred_tool_names = set(call.get("name", "") for call in pred_calls)
         gt_tool_names = set(call.get("name", "") for call in gt_calls)
