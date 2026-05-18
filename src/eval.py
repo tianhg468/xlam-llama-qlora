@@ -299,7 +299,7 @@ def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_
         if idx < start_idx:
             continue
 
-        if (idx + 1) % 50 == 0:
+        if (idx + 1) % 10 == 0:
             print(f"  Processed {idx + 1}/{len(test_data)} examples")
 
         prompt = example["prompt"]
@@ -328,8 +328,8 @@ def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_
             "raw_response": response,
         })
 
-        # Save checkpoint every 50 examples
-        if checkpoint_file and (idx + 1) % 50 == 0:
+        # Save checkpoint every 10 examples
+        if checkpoint_file and (idx + 1) % 10 == 0:
             with open(checkpoint_file, "w") as f:
                 json.dump({
                     "predictions": predictions,
@@ -402,7 +402,7 @@ def main():
     print("="*80)
     print("EVALUATION - Base vs LoRA on xLAM Test Set")
     print("="*80)
-    print("💾 Progress auto-saved every 50 examples")
+    print("💾 Progress auto-saved every 10 examples")
 
     # Load test data
     num_samples = config["evaluation"]["num_test_samples"]
