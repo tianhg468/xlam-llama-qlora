@@ -2,7 +2,7 @@
 
 # Model
 base_model: "meta-llama/Llama-3.1-8B-Instruct"
-attn_implementation: "flash_attention_2"  # fallback to "eager" if FA2 not available
+attn_implementation: "flash_attention_2" # fallback to "eager" if FA2 not available
 
 # Dataset
 dataset_name: "Salesforce/xlam-function-calling-60k"
@@ -37,10 +37,10 @@ quantization:
 # Training Hyperparameters
 training:
   num_train_epochs: 3
-  max_steps: -1  # set to e.g. 200 for quick smoke test; -1 = use num_train_epochs
+  max_steps: -1 # set to e.g. 200 for quick smoke test; -1 = use num_train_epochs
   per_device_train_batch_size: 4
   per_device_eval_batch_size: 4
-  gradient_accumulation_steps: 4  # effective batch size = 4 * 4 = 16
+  gradient_accumulation_steps: 4 # effective batch size = 4 * 4 = 16
   gradient_checkpointing: true
   max_seq_length: 2048
 
@@ -67,41 +67,41 @@ training:
   save_total_limit: 2
 
   # Misc
-  report_to: "wandb"  # Weights & Biases tracking enabled
+  report_to: "wandb" # Weights & Biases tracking enabled
   seed: 42
   output_dir: "outputs/llama31-8b-xlam-lora"
 
 # Evaluation
 evaluation:
-  num_test_samples: 500  # number of test examples to evaluate
+  num_test_samples: 100 # number of test examples to evaluate
   max_new_tokens: 512
-  temperature: 0.0  # greedy decoding
+  temperature: 0.0 # greedy decoding
   do_sample: false
-  repetition_penalty: 1.15  # Moderate penalty to prevent loops
+  repetition_penalty: 1.15 # Moderate penalty to prevent loops
 
 # Inference
 inference:
   max_new_tokens: 512
   temperature: 0.0
   do_sample: false
-  repetition_penalty: 1.15  # Moderate penalty to prevent loops
+  repetition_penalty: 1.15 # Moderate penalty to prevent loops
 
 # LM Evaluation Harness (EleutherAI)
 lm_harness:
   tasks:
-    - "mmlu"  # Full MMLU benchmark (or use subsets like "mmlu_abstract_algebra")
-  num_fewshot: 5  # Number of few-shot examples
-  batch_size: 1  # Batch size for evaluation
-  device: "cuda"  # Device to use (cuda, cpu)
+    - "mmlu" # Full MMLU benchmark (or use subsets like "mmlu_abstract_algebra")
+  num_fewshot: 5 # Number of few-shot examples
+  batch_size: 1 # Batch size for evaluation
+  device: "cuda" # Device to use (cuda, cpu)
 
 # Frontier Model Comparison
 # Set API keys as environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY
 frontier_models:
-  num_test_samples: 100  # Number of test examples (API costs can add up)
+  num_test_samples: 100 # Number of test examples (API costs can add up)
   enabled:
-    - "gpt-4o"  # OpenAI GPT-4o (latest)
-    - "gpt-4-turbo"  # OpenAI GPT-4 Turbo
+    - "gpt-4o" # OpenAI GPT-4o (latest)
+    - "gpt-4-turbo" # OpenAI GPT-4 Turbo
     # - "gpt-3.5-turbo"  # OpenAI GPT-3.5 (uncomment to enable)
-    - "claude-3-5-sonnet"  # Anthropic Claude 3.5 Sonnet
+    - "claude-3-5-sonnet" # Anthropic Claude 3.5 Sonnet
     # - "claude-3-opus"  # Anthropic Claude 3 Opus (uncomment to enable)
     # - "gemini-1.5-pro"  # Google Gemini 1.5 Pro (uncomment to enable)
