@@ -54,12 +54,15 @@ def load_models(config: Dict, adapter_path: Path):
     """
     Load both base model and LoRA-adapted model.
 
+    IMPORTANT: Must load base model twice to avoid adapter contamination.
+    If we load adapter on top of base_model, they share the same underlying weights.
+
     Returns:
         Tuple of (base_model, lora_model, tokenizer)
     """
     bnb_config = setup_quantization_config(config)
 
-    print("Loading base model...")
+    print("Loading base model (for base evaluation)...")
     base_model = AutoModelForCausalLM.from_pretrained(
         config["base_model"],
         quantization_config=bnb_config,
@@ -67,9 +70,17 @@ def load_models(config: Dict, adapter_path: Path):
         trust_remote_code=False,
     )
 
-    print("Loading LoRA adapter...")
+    print("Loading second base model instance (for LoRA evaluation)...")
+    base_model_for_lora = AutoModelForCausalLM.from_pretrained(
+        config["base_model"],
+        quantization_config=bnb_config,
+        device_map="auto",
+        trust_remote_code=False,
+    )
+
+    print("Loading LoRA adapter on top of second base model...")
     lora_model = PeftModel.from_pretrained(
-        base_model,
+        base_model_for_lora,
         str(adapter_path),
         is_trainable=False,
     )
