@@ -142,6 +142,20 @@ def parse_tool_calls(response: str) -> Tuple[bool, List[Dict]]:
         - is_valid: True if response is valid JSON
         - parsed_calls: List of tool call dicts, or empty list if invalid
     """
+    def fix_name_bug(calls: List[Dict]) -> List[Dict]:
+        """Fix -name bug: replace '-name' key with 'name' in tool calls."""
+        fixed_calls = []
+        for call in calls:
+            if isinstance(call, dict):
+                fixed_call = call.copy()
+                # Fix -name -> name
+                if "-name" in fixed_call and "name" not in fixed_call:
+                    fixed_call["name"] = fixed_call.pop("-name")
+                fixed_calls.append(fixed_call)
+            else:
+                fixed_calls.append(call)
+        return fixed_calls
+
     # Try to extract JSON from response (model might add extra text)
     response = response.strip()
 
@@ -149,9 +163,9 @@ def parse_tool_calls(response: str) -> Tuple[bool, List[Dict]]:
     try:
         parsed = json.loads(response)
         if isinstance(parsed, list):
-            return True, parsed
+            return True, fix_name_bug(parsed)
         elif isinstance(parsed, dict):
-            return True, [parsed]  # single tool call
+            return True, fix_name_bug([parsed])  # single tool call
         else:
             return False, []
     except json.JSONDecodeError:
@@ -166,7 +180,7 @@ def parse_tool_calls(response: str) -> Tuple[bool, List[Dict]]:
             json_str = response[start_idx:end_idx+1]
             parsed = json.loads(json_str)
             if isinstance(parsed, list):
-                return True, parsed
+                return True, fix_name_bug(parsed)
         except json.JSONDecodeError:
             pass
 

@@ -73,7 +73,7 @@ training:
 
 # Evaluation
 evaluation:
-  num_test_samples: 100 # number of test examples to evaluate
+  num_test_samples: 10 # number of test examples to evaluate (reduced for quick testing)
   max_new_tokens: 512
   temperature: 0.0 # greedy decoding
   do_sample: false

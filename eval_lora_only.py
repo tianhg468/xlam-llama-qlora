@@ -109,12 +109,13 @@ def main():
         checkpoint_dir=checkpoint_dir
     )
 
-    # Save results
+    # Save results (including predictions for debugging)
     results = {
         "lora_model": {
             "model_name": f"{config['base_model']} + LoRA",
             "adapter_path": str(adapter_path),
             "metrics": lora_metrics,
+            "predictions": lora_predictions,  # Save for debugging
         },
         "config": {
             "num_test_samples": len(test_data),

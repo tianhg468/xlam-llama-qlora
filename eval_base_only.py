@@ -92,11 +92,12 @@ def main():
         checkpoint_dir=checkpoint_dir
     )
 
-    # Save results
+    # Save results (including predictions for debugging)
     results = {
         "base_model": {
             "model_name": config["base_model"],
             "metrics": base_metrics,
+            "predictions": base_predictions,  # Save for debugging
         },
         "config": {
             "num_test_samples": len(test_data),
