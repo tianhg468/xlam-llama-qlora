@@ -143,14 +143,26 @@ def parse_tool_calls(response: str) -> Tuple[bool, List[Dict]]:
         - parsed_calls: List of tool call dicts, or empty list if invalid
     """
     def fix_name_bug(calls: List[Dict]) -> List[Dict]:
-        """Fix -name bug: replace '-name' key with 'name' in tool calls."""
+        """Fix name formatting bugs: '-name', ' name', etc. -> 'name'."""
         fixed_calls = []
         for call in calls:
             if isinstance(call, dict):
-                fixed_call = call.copy()
-                # Fix -name -> name
-                if "-name" in fixed_call and "name" not in fixed_call:
-                    fixed_call["name"] = fixed_call.pop("-name")
+                fixed_call = {}
+                for key, value in call.items():
+                    # Fix various name key formatting issues
+                    if key.strip() == "name" and key != "name":
+                        # Handles: " name", "-name", "name ", etc.
+                        fixed_call["name"] = value
+                    else:
+                        fixed_call[key] = value
+
+                # Additional fix: if we don't have "name" but have a variant
+                if "name" not in fixed_call:
+                    for variant in ["-name", " name", "name ", " name "]:
+                        if variant in call:
+                            fixed_call["name"] = call[variant]
+                            break
+
                 fixed_calls.append(fixed_call)
             else:
                 fixed_calls.append(call)
