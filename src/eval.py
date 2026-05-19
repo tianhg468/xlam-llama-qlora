@@ -338,9 +338,10 @@ def evaluate_model(model, tokenizer, test_data: List[Dict], config: Dict, model_
                     "total": len(test_data)
                 }, f)
 
-    # Remove checkpoint file when complete
+    # Keep checkpoint file for debugging (do NOT delete)
+    # This allows post-evaluation analysis of predictions
     if checkpoint_file and checkpoint_file.exists():
-        checkpoint_file.unlink()
+        print(f"  ✅ Checkpoint preserved for debugging: {checkpoint_file}")
 
     # Compute metrics
     metrics = compute_metrics(predictions, ground_truths)

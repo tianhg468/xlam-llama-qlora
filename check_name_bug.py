@@ -1,7 +1,7 @@
 import json
 import sys
 
-checkpoint_file = "outputs/eval_checkpoints/lora_eval_checkpoint.json"
+checkpoint_file = "outputs/eval_checkpoints/LoRA_Model_checkpoint.json"
 
 try:
     with open(checkpoint_file) as f:
