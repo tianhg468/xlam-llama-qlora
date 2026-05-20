@@ -341,9 +341,9 @@ If you use this code, please cite:
 ```bibtex
 @software{xlam_llama_qlora,
   title = {xLAM Llama 3.1 qLoRA Fine-tuning},
-  author = {Your Name},
+  author = {Tian Huang},
   year = {2024},
-  url = {https://github.com/yourusername/xlam-llama-qlora}
+  url = {https://github.com/tianhg468/xlam-llama-qlora}
 }
 ```
 
